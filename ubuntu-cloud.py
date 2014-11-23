@@ -38,8 +38,41 @@ def download_file(url, local_path, sum=None):
     return True
 
 
+def download_items(items):
+    items = sorted(items, lambda x, y: cmp(x['path'], y['path']))
+
+    for item in items:
+        local_path = '%s/%s' % (MIRROR_PATH, item['path'])
+        url = '%s/%s' % (UPSTREAM_BASE, item['path'])
+
+        if os.path.exists(local_path):
+            continue
+
+        print(local_path)
+        download_file(url, local_path)
+
+
+def update_links(links):
+    for link_name, link_target in links.iteritems():
+        link_path = '%s/server/releases/%s' % (MIRROR_PATH, link_name)
+        link_target = '%s/server/releases/%s' % (MIRROR_PATH, link_target)
+
+        if os.path.exists(link_path) and os.path.islink(link_path):
+            existing_target = os.path.realpath(link_path)
+
+            if existing_target != link_target:
+                print('Updating link %s -> %s' % (link_path, link_target))
+                os.unlink(existing_target)
+
+        try:
+            os.symlink(link_target, link_path)
+        except Exception:
+            pass
+
+
 def mirror():
-    download_items = []
+    mirror_items = []
+    local_links = {}
 
     resp = requests.get('%s/%s' % (UPSTREAM_BASE, UPSTREAM_FEED))
     for product_key, product in resp.json().get('products').iteritems():
@@ -48,29 +81,22 @@ def mirror():
         if product['arch'] not in ARCH_LIST:
             continue
 
-        for version_key, version in product['versions'].iteritems():
-            if version['label'] not in LABEL_LIST:
-                continue
+        versions = {k: v for k, v in product['versions'].iteritems()
+                    if v['label'] in LABEL_LIST}
 
-            for item_type, item in version['items'].iteritems():
-                if item_type not in ITEM_LIST:
-                    continue
+        latest_ver = sorted(product['versions'])[-1]
+        release_current = '%s/current' % product['release']
+        current_target = '%s/release-%s' % (product['release'], latest_ver)
+        local_links.update({product['version']: product['release'],
+                            release_current: current_target})
 
-                download_items.append(item)
+        for version_key, version in versions.iteritems():
+            items = [v for k, v in version['items'].iteritems()
+                     if k in ITEM_LIST]
+            mirror_items += items
 
-    download_items = sorted(download_items,
-                            lambda x, y: cmp(y['path'], x['path']))
-
-    for ii in download_items:
-        local_path = '%s/%s' % (MIRROR_PATH, ii['path'])
-        url = '%s/%s' % (UPSTREAM_BASE, ii['path'])
-
-        print(local_path)
-
-        if os.path.exists(local_path):
-            continue
-
-        download_file(url, local_path)
+    download_items(mirror_items)
+    update_links(local_links)
 
 
 if __name__ == '__main__':
