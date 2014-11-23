@@ -6,11 +6,13 @@ import requests
 
 # TODO(bc): provide these via config and/or argparse
 MIRROR_PATH = '/mnt/mirrors.os02/ubuntu-cloud'
-RELEASE_LIST = ['trusty',
+RELEASE_LIST = ['precise',
+                'trusty',
                 'utopic']
 ARCH_LIST = ['amd64']
 LABEL_LIST = ['release']
-ITEM_LIST = ['disk1.img']
+ITEM_LIST = ['disk1.img',
+             'disk.img']
 
 UPSTREAM_BASE = 'http://cloud-images.ubuntu.com'
 UPSTREAM_FEED = 'releases/streams/v1/com.ubuntu.cloud:released:download.json'
