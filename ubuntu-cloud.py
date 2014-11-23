@@ -5,7 +5,7 @@ import requests
 
 
 # TODO(bc): provide these via config and/or argparse
-MIRROR_PATH = '/mnt/mirror.os02/ubuntu-cloud'
+MIRROR_PATH = '/mnt/mirrors.os02/ubuntu-cloud'
 RELEASE_LIST = ['trusty',
                 'utopic']
 ARCH_LIST = ['amd64']
