@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -o errexit
 
 SCRIPT_PATH=$(readlink -f $0)
 SCRIPT_NAME=$(basename $SCRIPT_PATH)
@@ -9,10 +9,10 @@ LOCK_FILE=${SCRIPT_DIR}/.lock.${LOGGER_NAME}
 BASEDIR=$(dirname $SCRIPT_PATH)
 source ${SCRIPT_DIR}/mirror-common.sh
 
-MIRRORS_ROOT=/mnt/mirrors.os01
-export GNUPGHOME=$MIRRORS_ROOT/keyring
+MIRRORS_ROOT=/data/mirrors
+export GNUPGHOME=$MIRRORS_ROOT/.keyring
 
-release=wheezy,wheezy-updates,wheezy-backports,jessie,jessie-updates,jessie-backports
+release=bullseye,bullseye-updates,bullseye-backports,buster,buster-updates,buster-backports
 section=main,contrib,non-free,main/debian-installer
 arch=amd64,i386
 proto=http
@@ -24,7 +24,7 @@ out_path="${MIRRORS_ROOT}/debian"
 lock
 
 debmirror --verbose \
-          --source \
+          --nosource \
           --diff=none \
           --rsync-extra=doc,indices,tools,trace \
           --method $proto \
